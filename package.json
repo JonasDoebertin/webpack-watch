@@ -1,6 +1,6 @@
 {
   "name": "webpack-watch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "index.js",
   "author": "Jonas Döbertin <hello@jd-powered.net>",
   "license": "MIT",
