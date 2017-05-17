@@ -39,7 +39,7 @@ class WatchPlugin {
     }
 
     runCompiler() {
-        this.compiler.run((error, stats) => {
+        this.compiler.run(error => {
             if (error) {
                 this.stopMonitor();
                 throw error;
