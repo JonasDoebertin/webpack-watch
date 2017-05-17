@@ -14,7 +14,11 @@
     "xo": "^0.18.2"
   },
   "xo": {
-    "env": ["node"],
+    "env": [
+      "node"
+    ],
     "space": 4
-  }
+  },
+  "description": "A simple webpack plugin that watches a path for changes and triggers compilation.",
+  "repository": "https://github.com/JonasDoebertin/webpack-watch.git"
 }
