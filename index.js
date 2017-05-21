@@ -1,50 +1,53 @@
-const watch = require('watch');
+const chokidar = require('chokidar');
+const debounce = require('lodash.debounce');
+const fs = require('fs');
 
 class WatchPlugin {
 
-    constructor(options) {
-        this.options = options;
-        this.compiler = null;
-        this.monitor = null;
+    constructor(config) {
+        this.config = config;
+        this.firstPassDone = false;
     }
 
     apply(compiler) {
         this.compiler = compiler;
 
-        if (!this.monitor) {
-            this.startMonitor();
-        }
-    }
+        compiler.plugin('watch-run', (params, callback) => {
+            if (!this.watcher) {
+                this.startWatcher();
+            }
 
-    startMonitor() {
-        watch.createMonitor(this.options.path, monitor => {
-            this.monitor = monitor;
-
-            monitor.on('created', () => {
-                this.runCompiler();
-            });
-
-            monitor.on('changed', () => {
-                this.runCompiler();
-            });
-
-            monitor.on('removed', () => {
-                this.runCompiler();
-            });
+            callback();
         });
+
+        compiler.plugin('done', () => {
+            this.firstPassDone = true;
+        })
     }
 
-    stopMonitor() {
-        this.monitor.stop();
+    startWatcher() {
+        this.watcher = chokidar.watch(this.config.paths, this.config.options);
+
+        const run = debounce(this.runCompiler.bind(this), 500);
+
+        this.watcher.on('add', (path) => { run() });
+        this.watcher.on('change', (path) => { run() });
+        this.watcher.on('unlink', (path) => { run() });
+    }
+
+    stopWatcher() {
+        this.watcher.close();
     }
 
     runCompiler() {
-        this.compiler.run(error => {
-            if (error) {
-                this.stopMonitor();
-                throw error;
-            }
-        });
+        if (this.firstPassDone) {
+            this.compiler.run(error => {
+                if (error) {
+                    this.stopWatcher();
+                    throw error;
+                }
+            });
+        }
     }
 }
 
